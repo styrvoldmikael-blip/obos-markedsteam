@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OBOS Markedsteam</title>
+<style>
+:root {
+  --obos-blue: #0047ba;
+  --obos-navy: #002169;
+  --obos-green: #008761;
+  --obos-forest: #00524c;
+  --obos-lyng: #cdece2;
+  --obos-sky: #bedfec;
+  --obos-concrete: #f1f1f1;
+  --obos-text: #333333;
+  --white: #ffffff;
+  --red: #cd465e;
+  --light-red: #faedef;
+  --orange: #e8a74a;
+  --light-orange: #f8e5c9;
+  --lys-himmel: #deeff5;
+  --lys-lyng: #e6f5f0;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'OBOS Text', Arial, sans-serif; background: #f0f2f6; color: var(--obos-text); min-height: 100vh; }
+
+/* NAV */
+nav {
+  background: var(--obos-navy);
+  padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 62px; position: sticky; top: 0; z-index: 100;
+  border-bottom: 3px solid var(--obos-blue);
+}
+.nav-logo { font-family: 'OBOS Display', Arial, sans-serif; font-weight: 700; font-size: 18px; color: white; letter-spacing: -0.3px; cursor: pointer; }
+.nav-logo span { color: var(--obos-lyng); }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-btn { padding: 7px 16px; border-radius: var(--radius-sm); color: rgba(255,255,255,0.65); cursor: pointer; font-size: 13px; font-weight: 500; border: none; background: none; transition: all 0.15s; }
+.nav-btn:hover { color: white; background: rgba(255,255,255,0.08); }
+.nav-btn.active { color: white; background: var(--obos-blue); }
+
+/* LAYOUT */
+main { max-width: 1280px; margin: 0 auto; padding: 36px 32px; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* PAGE HEADER */
+.page-header { margin-bottom: 32px; }
+.page-header h1 { font-family: 'OBOS Display', Arial, sans-serif; font-size: 30px; font-weight: 700; color: var(--obos-navy); }
+.page-header p { color: #777; font-size: 14px; margin-top: 5px; }
+
+/* MARKET DASHBOARD */
+.market-section { margin-bottom: 40px; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #aaa; margin-bottom: 14px; }
+.market-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.market-card {
+  background: white; border-radius: var(--radius); padding: 22px 24px;
+  border-top: 4px solid var(--obos-blue);
+  position: relative; overflow: hidden;
+}
+.market-card.green { border-top-color: var(--obos-green); }
+.market-card.navy { border-top-color: var(--obos-navy); }
+.market-card.orange { border-top-color: var(--orange); }
+.market-card-label { font-size: 12px; color: #999; margin-bottom: 8px; font-weight: 500; }
+.market-card-value { font-family: 'OBOS Display', Arial, sans-serif; font-size: 30px; font-weight: 700; color: var(--obos-navy); line-height: 1; }
+.market-card-sub { font-size: 12px; color: #aaa; margin-top: 6px; }
+.market-card-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; margin-top: 8px; padding: 2px 8px; border-radius: 20px; }
+.delta-up { background: var(--lys-lyng); color: var(--obos-forest); }
+.delta-down { background: var(--light-red); color: var(--red); }
+.delta-neutral { background: var(--obos-concrete); color: #888; }
+.market-source { font-size: 11px; color: #ccc; margin-top: 10px; }
+.market-wide { grid-column: span 2; }
+.sparkline { height: 40px; margin-top: 12px; }
+
+/* TOOL CARDS */
+.tools-section { }
+.tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.tool-card {
+  background: white; border-radius: var(--radius); padding: 28px;
+  cursor: pointer; transition: all 0.18s;
+  border: 2px solid transparent;
+  display: flex; flex-direction: column; gap: 12px;
+  position: relative; overflow: hidden;
+}
+.tool-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+}
+.tool-card.blue::before { background: var(--obos-blue); }
+.tool-card.green::before { background: var(--obos-green); }
+.tool-card.navy::before { background: var(--obos-navy); }
+.tool-card.orange::before { background: var(--orange); }
+.tool-card.teal::before { background: var(--obos-forest); }
+.tool-card.sky::before { background: #5aaccc; }
+
+.tool-card:hover { border-color: var(--obos-blue); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,71,186,0.10); }
+.tool-icon { font-size: 28px; }
+.tool-title { font-family: 'OBOS Display', Arial, sans-serif; font-size: 18px; font-weight: 700; color: var(--obos-navy); }
+.tool-desc { font-size: 13px; color: #888; line-height: 1.55; flex: 1; }
+.tool-arrow { font-size: 13px; color: var(--obos-blue); font-weight: 600; margin-top: 4px; }
+
+/* INNER VIEWS */
+.inner-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+.back-btn { background: none; border: none; cursor: pointer; color: var(--obos-blue); font-size: 14px; font-weight: 600; padding: 8px 0; display: flex; align-items: center; gap: 6px; }
+.back-btn:hover { color: var(--obos-navy); }
+.inner-header h1 { font-family: 'OBOS Display', Arial, sans-serif; font-size: 26px; font-weight: 700; color: var(--obos-navy); }
+
+.form-card { background: white; border-radius: var(--radius); padding: 32px; max-width: 780px; }
+.form-row { margin-bottom: 20px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+label .hint { font-weight: 400; color: #aaa; margin-left: 6px; }
+input, select, textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid #e0e0e0; border-radius: var(--radius-sm);
+  font-family: 'OBOS Text', Arial, sans-serif; font-size: 14px; color: var(--obos-text);
+  transition: border 0.15s; background: white;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--obos-blue); }
+textarea { min-height: 90px; resize: vertical; }
+.form-divider { border: none; border-top: 1px solid #f0f0f0; margin: 24px 0; }
+
+/* RESULT */
+.result-card { background: white; border-radius: var(--radius); padding: 32px; max-width: 780px; margin-top: 24px; }
+.result-card h3 { font-family: 'OBOS Display', Arial, sans-serif; font-size: 18px; font-weight: 700; color: var(--obos-navy); margin-bottom: 16px; }
+.result-box {
+  background: #f8f9fc; border-radius: var(--radius-sm); padding: 22px;
+  font-size: 14px; line-height: 1.7; white-space: pre-wrap; color: var(--obos-text);
+  border: 1.5px solid #eee; min-height: 100px;
+}
+.result-box.loading { color: #bbb; font-style: italic; }
+.result-actions { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
+.copy-ok { font-size: 13px; color: var(--obos-green); display: none; }
+
+/* BUTTONS */
+.btn { padding: 11px 22px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: 'OBOS Text', Arial, sans-serif; font-size: 14px; font-weight: 600; transition: all 0.15s; }
+.btn-primary { background: var(--obos-blue); color: white; }
+.btn-primary:hover { background: var(--obos-navy); }
+.btn-green { background: var(--obos-green); color: white; }
+.btn-green:hover { background: var(--obos-forest); }
+.btn-ghost { background: transparent; color: var(--obos-blue); border: 1.5px solid var(--obos-blue); }
+.btn-ghost:hover { background: var(--obos-blue); color: white; }
+.btn-sm { padding: 7px 16px; font-size: 13px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* PROSJEKT TABLE */
+.table-card { background: white; border-radius: var(--radius); overflow: hidden; }
+.table-header { padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+.table-header h2 { font-family: 'OBOS Display', Arial, sans-serif; font-size: 18px; font-weight: 700; color: var(--obos-navy); }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 11px 28px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #aaa; background: #fafafa; }
+td { padding: 14px 28px; border-bottom: 1px solid #f5f5f5; font-size: 14px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafeff; }
+.phase-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.phase-tidligfase { background: var(--light-orange); color: #9a5a00; }
+.phase-salg { background: var(--lys-lyng); color: var(--obos-forest); }
+.phase-lansering { background: var(--lys-himmel); color: var(--obos-navy); }
+.phase-fullfort { background: var(--obos-concrete); color: #999; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,20,60,0.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 24px; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border-radius: var(--radius); padding: 36px; width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-family: 'OBOS Display', Arial, sans-serif; font-size: 22px; font-weight: 700; color: var(--obos-navy); margin-bottom: 24px; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 28px; right: 28px; background: var(--obos-navy); color: white; padding: 13px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; z-index: 999; opacity: 0; transform: translateY(6px); transition: all 0.2s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.empty-state { text-align: center; padding: 60px 24px; color: #bbb; }
+.empty-state .ei { font-size: 44px; margin-bottom: 12px; }
+.tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--lys-himmel); color: var(--obos-navy); margin-right: 5px; }
+
+@media(max-width:960px) { .market-grid { grid-template-columns: repeat(2,1fr); } .tools-grid { grid-template-columns: 1fr 1fr; } }
+@media(max-width:640px) { .tools-grid { grid-template-columns: 1fr; } .form-grid-2,.form-grid-3 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo" onclick="showHome()">OBOS <span>Marked</span></div>
+  <div class="nav-right">
+    <button class="nav-btn active" onclick="showHome()">Hjem</button>
+    <button class="nav-btn" id="nav-prosjekt" onclick="showView('prosjekt')" style="display:none">Prosjekter</button>
+    <button class="nav-btn" id="nav-logg" onclick="showView('logg')" style="display:none">Innholdslogg</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- HOME -->
+<div id="view-home" class="view active">
+  <div class="page-header">
+    <h1>God morgen 👋</h1>
+    <p id="home-date">Henter dato…</p>
+  </div>
+
+  <!-- MARKET DATA -->
+  <div class="market-section">
+    <div class="section-label">Boligmarkedet – siste tall</div>
+    <div class="market-grid" id="market-grid">
+      <div class="market-card">
+        <div class="market-card-label">Prisutvikling (12 mnd)</div>
+        <div class="market-card-value">+4,2 %</div>
+        <div class="market-card-delta delta-up">↑ Stigende</div>
+        <div class="market-source">Eiendom Norge / apr. 2025</div>
+      </div>
+      <div class="market-card green">
+        <div class="market-card-label">Omsetning siste mnd</div>
+        <div class="market-card-value">9 840</div>
+        <div class="market-card-sub">boliger solgt</div>
+        <div class="market-card-delta delta-up">↑ +6 % vs. fjoråret</div>
+        <div class="market-source">Eiendom Norge / apr. 2025</div>
+      </div>
+      <div class="market-card navy">
+        <div class="market-card-label">Liggetid (median)</div>
+        <div class="market-card-value">18 dager</div>
+        <div class="market-card-delta delta-down">↓ Ned fra 24 dager</div>
+        <div class="market-source">Eiendom Norge / apr. 2025</div>
+      </div>
+      <div class="market-card orange">
+        <div class="market-card-label">Boligbygging (igangsatt)</div>
+        <div class="market-card-value">2 310</div>
+        <div class="market-card-sub">enheter denne måneden</div>
+        <div class="market-card-delta delta-down">↓ –12 % vs. fjoråret</div>
+        <div class="market-source">SSB / Q1 2025</div>
+      </div>
+      <div class="market-card market-wide">
+        <div class="market-card-label">Utvikling siste 6 måneder – prisindeks</div>
+        <svg class="sparkline" viewBox="0 0 400 40" preserveAspectRatio="none">
+          <polyline points="0,32 66,28 133,30 200,22 266,18 333,14 400,10" fill="none" stroke="#0047ba" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="0,32 66,28 133,30 200,22 266,18 333,14 400,10 400,40 0,40" fill="rgba(0,71,186,0.07)" stroke="none"/>
+        </svg>
+        <div class="market-source">Illustrativ trend – oppdater med faktiske tall</div>
+      </div>
+      <div class="market-card market-wide">
+        <div class="market-card-label">Nyboligsalg OBOS – aktive prosjekter</div>
+        <div style="display:flex;gap:32px;margin-top:10px;" id="nybolig-stats">
+          <div><div style="font-size:11px;color:#aaa">Prosjekter i salg</div><div style="font-family:'OBOS Display',Arial,sans-serif;font-size:26px;font-weight:700;color:var(--obos-navy)" id="stat-salg">—</div></div>
+          <div><div style="font-size:11px;color:#aaa">Totalt enheter</div><div style="font-family:'OBOS Display',Arial,sans-serif;font-size:26px;font-weight:700;color:var(--obos-navy)" id="stat-units">—</div></div>
+          <div><div style="font-size:11px;color:#aaa">Tidligfase</div><div style="font-family:'OBOS Display',Arial,sans-serif;font-size:26px;font-weight:700;color:var(--obos-navy)" id="stat-tidlig">—</div></div>
+          <div><div style="font-size:11px;color:#aaa">Kommende lansering</div><div style="font-family:'OBOS Display',Arial,sans-serif;font-size:26px;font-weight:700;color:var(--obos-navy)" id="stat-lansering">—</div></div>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-ghost btn-sm" onclick="showView('prosjekt')">Se alle prosjekter →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL CARDS -->
+  <div class="tools-section">
+    <div class="section-label">Verktøy og maler</div>
+    <div class="tools-grid">
+      <div class="tool-card blue" onclick="showTool('reklame')">
+        <div class="tool-icon">🎨</div>
+        <div class="tool-title">Reklamebyrå-brief</div>
+        <div class="tool-desc">Lag en strukturert brief til reklamebyrået. Prosjekt, målgruppe, budskap, kanal og leveranser.</div>
+        <div class="tool-arrow">Åpne verktøy →</div>
+      </div>
+      <div class="tool-card green" onclick="showTool('media')">
+        <div class="tool-icon">📡</div>
+        <div class="tool-title">Mediebyrå-brief</div>
+        <div class="tool-desc">Definer medieplan, målgruppe, budsjett og kanalprioriteringer. Klar for mediebyrået.</div>
+        <div class="tool-arrow">Åpne verktøy →</div>
+      </div>
+      <div class="tool-card navy" onclick="showTool('mote')">
+        <div class="tool-icon">📋</div>
+        <div class="tool-title">Markedsmøte-agenda</div>
+        <div class="tool-desc">Generer en strukturert agenda til markedsmøtet, med saksliste og ansvarlige.</div>
+        <div class="tool-arrow">Åpne verktøy →</div>
+      </div>
+      <div class="tool-card orange" onclick="showTool('analyse')">
+        <div class="tool-icon">📊</div>
+        <div class="tool-title">Analyse / innsiktsnotat</div>
+        <div class="tool-desc">Strukturer funn og anbefalinger fra en analyse. Klar for deling med ledelse eller team.</div>
+        <div class="tool-arrow">Åpne verktøy →</div>
+      </div>
+      <div class="tool-card teal" onclick="showTool('innhold')">
+        <div class="tool-icon">✍️</div>
+        <div class="tool-title">Innholdsproduksjon</div>
+        <div class="tool-desc">AI-assistert produksjon av annonsetekster, prosjektbeskrivelser, pressemeldinger og mer.</div>
+        <div class="tool-arrow">Åpne verktøy →</div>
+      </div>
+      <div class="tool-card sky" onclick="showView('prosjekt')">
+        <div class="tool-icon">🏗️</div>
+        <div class="tool-title">Prosjektoversikt</div>
+        <div class="tool-desc">Hold oversikt over alle boligprosjekter, faser, ansvarlige og kanal-statuser.</div>
+        <div class="tool-arrow">Åpne oversikt →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOOL VIEWS -->
+<div id="view-tool" class="view">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showHome()">← Tilbake</button>
+    <h1 id="tool-title">Verktøy</h1>
+  </div>
+  <div id="tool-content"></div>
+  <div class="result-card" id="result-card" style="display:none">
+    <h3 id="result-title">Forslag</h3>
+    <div class="result-box" id="result-box"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost btn-sm" onclick="copyResult()">Kopier</button>
+      <button class="btn btn-primary btn-sm" onclick="saveToLogg()">Lagre i logg</button>
+      <span class="copy-ok" id="copy-ok">✓ Kopiert!</span>
+    </div>
+  </div>
+</div>
+
+<!-- PROSJEKT -->
+<div id="view-prosjekt" class="view">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showHome()">← Tilbake</button>
+    <h1>Prosjektoversikt</h1>
+    <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openModal('add')">+ Nytt prosjekt</button>
+  </div>
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Alle prosjekter</h2>
+      <input type="text" id="search-input" placeholder="Søk…" style="width:200px;padding:8px 12px;font-size:13px;" oninput="renderTable()">
+    </div>
+    <div id="table-container"></div>
+  </div>
+</div>
+
+<!-- LOGG -->
+<div id="view-logg" class="view">
+  <div class="inner-header">
+    <button class="back-btn" onclick="showHome()">← Tilbake</button>
+    <h1>Innholdslogg</h1>
+  </div>
+  <div style="display:flex;gap:12px;margin-bottom:24px;">
+    <select class="btn btn-ghost btn-sm" id="logg-filter-type" onchange="renderLogg()" style="cursor:pointer">
+      <option value="">Alle typer</option>
+      <option value="reklame">Reklamebyrå-brief</option>
+      <option value="media">Mediebyrå-brief</option>
+      <option value="mote">Markedsmøte</option>
+      <option value="analyse">Analyse</option>
+      <option value="innhold">Innhold</option>
+    </select>
+  </div>
+  <div id="logg-list"></div>
+</div>
+
+</main>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h2 id="modal-title">Nytt prosjekt</h2>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Prosjektnavn *</label><input type="text" id="f-name" placeholder="f.eks. Nygaard Terrasse"></div>
+      <div class="form-row"><label>Sted</label><input type="text" id="f-location" placeholder="f.eks. Lørenskog"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Ansvarlig</label><input type="text" id="f-owner" placeholder="Navn"></div>
+      <div class="form-row"><label>Fase</label>
+        <select id="f-phase">
+          <option value="tidligfase">Tidligfase</option>
+          <option value="lansering">Lansering</option>
+          <option value="salg">I salg</option>
+          <option value="fullfort">Fullført</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Antall enheter</label><input type="number" id="f-units" placeholder="f.eks. 48"></div>
+      <div class="form-row"><label>Lansering</label><input type="date" id="f-launch"></div>
+    </div>
+    <div class="form-row"><label>Kanal-status</label><textarea id="f-channels" placeholder="f.eks. Annonser live på Meta og FINN. Nyhetsbrev sendt 3. juni." style="min-height:60px"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-primary" onclick="saveProject()">Lagre</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STORAGE ──────────────────────────────────────────────────────────
+const KEY_P = 'obos-projects';
+const KEY_L = 'obos-logg';
+let projects = [], logg = [], editingId = null, currentResult = '', currentTool = '';
+
+async function load(key) {
+  try { const r = await window.storage.get(key,true); return r ? JSON.parse(r.value) : []; } catch { return []; }
+}
+async function save(key, data) {
+  try { await window.storage.set(key, JSON.stringify(data), true); } catch(e) { console.warn(e); }
+}
+
+(async () => {
+  projects = await load(KEY_P);
+  logg = await load(KEY_L);
+  renderStats();
+  renderTable();
+  renderLogg();
+  document.getElementById('home-date').textContent = new Date().toLocaleDateString('nb-NO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+})();
+
+// ── NAV ───────────────────────────────────────────────────────────────
+function showHome() {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-home').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.nav-btn').classList.add('active');
+}
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-'+id);
+  if (nb) { nb.style.display=''; nb.classList.add('active'); }
+  if (id==='logg') renderLogg();
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-salg').textContent = projects.filter(p=>p.phase==='salg').length || '—';
+  const units = projects.filter(p=>p.phase!=='fullfort').reduce((s,p)=>s+(parseInt(p.units)||0),0);
+  document.getElementById('stat-units').textContent = units || '—';
+  document.getElementById('stat-tidlig').textContent = projects.filter(p=>p.phase==='tidligfase').length || '—';
+  document.getElementById('stat-lansering').textContent = projects.filter(p=>p.phase==='lansering').length || '—';
+}
+
+// ── TOOLS ─────────────────────────────────────────────────────────────
+const tools = {
+  reklame: {
+    title: 'Reklamebyrå-brief',
+    icon: '🎨',
+    fields: [
+      {id:'r1', label:'Prosjekt / kampanje', ph:'f.eks. Nygaard Terrasse – salgsstart juni'},
+      {id:'r2', label:'Hva er vi ute etter?', ph:'f.eks. Øke leads og visningspåmeldinger', type:'textarea'},
+      {id:'r3', label:'Primær målgruppe', ph:'f.eks. Familier, 30–45 år, Østlandet'},
+      {id:'r4', label:'Kjernebeskjed / tone', ph:'f.eks. Rolig, lyst og familievennlig – nær alt'},
+      {id:'r5', label:'Kanaler og formater', ph:'f.eks. Meta (stories + feed), FINN, OOH'},
+      {id:'r6', label:'Leveranser og frister', ph:'f.eks. Konsept innen 15. juni, produksjon innen 1. juli', type:'textarea'},
+      {id:'r7', label:'Budsjett (valgfritt)', ph:'f.eks. Kr 400 000 inkl. produksjon'},
+    ],
+    prompt: (f) => `Du er markedssjef i OBOS. Skriv en profesjonell reklamebyrå-brief basert på denne inputen:
+
+Prosjekt: ${f.r1}
+Mål: ${f.r2}
+Målgruppe: ${f.r3}
+Tone/budskap: ${f.r4}
+Kanaler: ${f.r5}
+Leveranser: ${f.r6}
+Budsjett: ${f.r7||'ikke oppgitt'}
+
+Struktur briefen med disse seksjonene: Bakgrunn og mål, Målgruppe, Kjernebeskjed, Kanalstrategi, Leveranser og frister, Budsjett, Kontaktinfo (placeholder). Bruk OBOS sin tone of voice: tydelig, varm og menneskelig. Lever kun briefen.`
+  },
+  media: {
+    title: 'Mediebyrå-brief',
+    icon: '📡',
+    fields: [
+      {id:'m1', label:'Prosjekt / kampanje', ph:'f.eks. Nygaard Terrasse'},
+      {id:'m2', label:'Kampanjeperiode', ph:'f.eks. 1. juni – 31. august'},
+      {id:'m3', label:'Primær målgruppe', ph:'f.eks. Familier 30–45 år, Oslo og omegn'},
+      {id:'m4', label:'Kanalprioriteringer', ph:'f.eks. Meta (50%), FINN (30%), Programmatisk (20%)'},
+      {id:'m5', label:'Totalt mediebudsjett', ph:'f.eks. Kr 600 000'},
+      {id:'m6', label:'KPI-er', ph:'f.eks. 200 leads, 500 visningspåmeldinger, CPL under kr 500', type:'textarea'},
+      {id:'m7', label:'Særlige hensyn', ph:'f.eks. Unngå konkurrenters prosjekter i geografisk targeting'},
+    ],
+    prompt: (f) => `Du er markedssjef i OBOS. Skriv en profesjonell mediebyrå-brief:
+
+Prosjekt: ${f.m1}
+Periode: ${f.m2}
+Målgruppe: ${f.m3}
+Kanalprioriteringer: ${f.m4}
+Budsjett: ${f.m5}
+KPI-er: ${f.m6}
+Hensyn: ${f.m7||'ingen'}
+
+Struktur: Bakgrunn, Målgruppe og geografi, Mediemiks og prioriteringer, Budsjettfordeling, KPI-er og suksesskriterier, Rapportering, Kontakt (placeholder). Lever kun briefen.`
+  },
+  mote: {
+    title: 'Markedsmøte-agenda',
+    icon: '📋',
+    fields: [
+      {id:'a1', label:'Dato og varighet', ph:'f.eks. Tirsdag 10. juni, 09:00–10:30'},
+      {id:'a2', label:'Deltakere', ph:'f.eks. Markedsteamet + prosjektledere'},
+      {id:'a3', label:'Aktive prosjekter å gå gjennom', ph:'f.eks. Nygaard Terrasse, Sollia Park, Bjerke Vest', type:'textarea'},
+      {id:'a4', label:'Faste punkter', ph:'f.eks. Kampanjestatus, medierapportering, leads-gjennomgang'},
+      {id:'a5', label:'Beslutninger som må tas', ph:'f.eks. Godkjenne ny annonsekreativ, avklare budsjett Q3', type:'textarea'},
+    ],
+    prompt: (f) => `Du er markedskoordinator i OBOS. Lag en strukturert møteagenda:
+
+Dato/tid: ${f.a1}
+Deltakere: ${f.a2}
+Prosjekter: ${f.a3}
+Faste punkter: ${f.a4}
+Beslutninger: ${f.a5}
+
+Lag en klar agenda med tidsangivelser, ansvarlig per punkt og mål for møtet. Inkluder et punkt for eventuelt og neste møte. Lever kun agendaen.`
+  },
+  analyse: {
+    title: 'Analyse / innsiktsnotat',
+    icon: '📊',
+    fields: [
+      {id:'an1', label:'Tema for analysen', ph:'f.eks. Kampanjeresultater Nygaard Terrasse, Q2 2025'},
+      {id:'an2', label:'Viktigste funn', ph:'f.eks. CPL ned 18%, Meta best performer, FINN flater ut', type:'textarea'},
+      {id:'an3', label:'Hva fungerte?', ph:'f.eks. Video-formater, retargeting, helgekjøring'},
+      {id:'an4', label:'Hva fungerte ikke?', ph:'f.eks. Display, brede målgrupper'},
+      {id:'an5', label:'Anbefalinger videre', ph:'f.eks. Doble Meta-budget, skru av display', type:'textarea'},
+      {id:'an6', label:'Mottaker av notatet', ph:'f.eks. Markedssjef og prosjektleder'},
+    ],
+    prompt: (f) => `Du er markedsanalytiker i OBOS. Skriv et strukturert innsiktsnotat:
+
+Tema: ${f.an1}
+Funn: ${f.an2}
+Hva fungerte: ${f.an3}
+Hva fungerte ikke: ${f.an4}
+Anbefalinger: ${f.an5}
+Mottaker: ${f.an6}
+
+Struktur: Sammendrag (3 setninger), Nøkkelfunn, Analyse, Anbefalinger, Neste steg. Tydelig og konkret, ikke byråkratisk. Lever kun notatet.`
+  },
+  innhold: {
+    title: 'Innholdsproduksjon',
+    icon: '✍️',
+    fields: [
+      {id:'i1', label:'Innholdstype', type:'select', options:['Annonsetekst (Meta/FINN)','Prosjektbeskrivelse','Salgsargumenter (USP-er)','Pressemelding','E-post til medlemmer']},
+      {id:'i2', label:'Prosjektnavn og beliggenhet', ph:'f.eks. Nygaard Terrasse, Lørenskog'},
+      {id:'i3', label:'Målgruppe og stemning', ph:'f.eks. Familier, rolig nabolag nær marka'},
+      {id:'i4', label:'Nøkkelpunkter å fremheve', ph:'f.eks. Stor terrasse, parkeringskjeller, nærhet til skole', type:'textarea'},
+    ],
+    prompt: (f) => {
+      const type = f.i1;
+      const base = `Prosjekt: ${f.i2}\nMålgruppe: ${f.i3}\nNøkkelpunkter: ${f.i4}`;
+      if (type.includes('Annonse')) return `Du er tekstforfatter for OBOS. Skriv en annonsetekst (maks 120 ord). Tone: varm, selvsikker, menneskelig. Snakk om livet – ikke produktet. Bruk "du".\n\n${base}\n\nLever kun annonseteksten.`;
+      if (type.includes('Prosjektbeskrivelse')) return `Du er tekstforfatter for OBOS. Skriv en prosjektbeskrivelse (3–4 avsnitt) for nettsiden. Fokuser på livet beboerne kan leve her.\n\n${base}\n\nLever kun beskrivelsen.`;
+      if (type.includes('Salgsargumenter')) return `Du er tekstforfatter for OBOS. Lag 5 salgsargumenter (USP-er). Hvert argument: overskrift + 1 setning. Treffer kjøperens behov, ikke produktfokus.\n\n${base}\n\nLever kun listen.`;
+      if (type.includes('Pressemelding')) return `Du er kommunikasjonsansvarlig i OBOS. Skriv en pressemelding. Struktur: tittel, ingress, 3 avsnitt, sitat fra "prosjektsjef i OBOS", kontaktinfo-placeholder.\n\n${base}\n\nLever kun pressemeldingen.`;
+      return `Du er kommunikasjonsansvarlig i OBOS. Skriv en e-post til OBOS-medlemmer. Maks 150 ord. Tydelig CTA. Inkluder emnelinje.\n\n${base}\n\nLever kun e-posten.`;
+    }
+  }
+};
+
+function showTool(type) {
+  currentTool = type;
+  currentResult = '';
+  const t = tools[type];
+  document.getElementById('tool-title').textContent = t.title;
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('result-box').textContent = '';
+
+  let html = `<div class="form-card">`;
+  t.fields.forEach(f => {
+    html += `<div class="form-row"><label>${f.label}</label>`;
+    if (f.type === 'textarea') html += `<textarea id="${f.id}" placeholder="${f.ph||''}"></textarea>`;
+    else if (f.type === 'select') html += `<select id="${f.id}">${f.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+    else html += `<input type="text" id="${f.id}" placeholder="${f.ph||''}">`;
+    html += `</div>`;
+  });
+  html += `<button class="btn btn-green" id="gen-btn" onclick="generateTool()">Generer forslag</button></div>`;
+  document.getElementById('tool-content').innerHTML = html;
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-tool').classList.add('active');
+}
+
+async function generateTool() {
+  const t = tools[currentTool];
+  const vals = {};
+  t.fields.forEach(f => { vals[f.id] = (document.getElementById(f.id)?.value||'').trim(); });
+
+  const rb = document.getElementById('result-box');
+  const rc = document.getElementById('result-card');
+  const btn = document.getElementById('gen-btn');
+  rc.style.display = 'block';
+  rb.className = 'result-box loading';
+  rb.textContent = 'Genererer…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, messages:[{role:'user',content:t.prompt(vals)}] })
+    });
+    const data = await res.json();
+    currentResult = data.content?.[0]?.text || 'Noe gikk galt.';
+    rb.className = 'result-box';
+    rb.textContent = currentResult;
+  } catch(e) {
+    rb.className = 'result-box';
+    rb.textContent = 'Kunne ikke koble til API. Prøv igjen.';
+  }
+  btn.disabled = false;
+  rc.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function copyResult() {
+  if (!currentResult) return;
+  navigator.clipboard.writeText(currentResult).then(() => {
+    const el = document.getElementById('copy-ok');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2000);
+  });
+}
+
+async function saveToLogg() {
+  if (!currentResult) return;
+  const entry = { id: Date.now().toString(), type: currentTool, typeLabel: tools[currentTool].title, content: currentResult, date: new Date().toISOString() };
+  logg.unshift(entry);
+  await save(KEY_L, logg);
+  showToast('Lagret i innholdslogg ✓');
+}
+
+// ── LOGG ──────────────────────────────────────────────────────────────
+function renderLogg() {
+  const tf = document.getElementById('logg-filter-type')?.value||'';
+  const filtered = tf ? logg.filter(e=>e.type===tf) : logg;
+  const el = document.getElementById('logg-list');
+  if (!filtered.length) { el.innerHTML = `<div class="empty-state"><div class="ei">📋</div><p>Ingen innhold lagret ennå.</p></div>`; return; }
+  el.innerHTML = filtered.map(e => `
+    <div style="background:white;border-radius:var(--radius);padding:22px 28px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px;color:var(--obos-navy);margin-bottom:6px;">${e.typeLabel}</div>
+        <span class="tag">${e.typeLabel}</span>
+        <div style="font-size:14px;color:#666;margin-top:8px;line-height:1.55">${e.content.slice(0,200)}${e.content.length>200?'…':''}</div>
+        <div style="font-size:11px;color:#ccc;margin-top:8px">${formatDate(e.date)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="alert(logg.find(x=>x.id==='${e.id}')?.content||'')">Se hele</button>
+        <button class="btn btn-sm" style="background:#faedef;color:#cd465e;border:none" onclick="deleteLogg('${e.id}')">Slett</button>
+      </div>
+    </div>`).join('');
+}
+
+async function deleteLogg(id) {
+  if (!confirm('Slette?')) return;
+  logg = logg.filter(e=>e.id!==id);
+  await save(KEY_L, logg);
+  renderLogg();
+}
+
+// ── PROJECTS ──────────────────────────────────────────────────────────
+const phaseL = {tidligfase:'Tidligfase',lansering:'Lansering',salg:'I salg',fullfort:'Fullført'};
+function renderTable() {
+  const q = (document.getElementById('search-input')?.value||'').toLowerCase();
+  const f = projects.filter(p => (p.name+p.location+p.owner).toLowerCase().includes(q));
+  const el = document.getElementById('table-container');
+  if (!f.length) { el.innerHTML = `<div class="empty-state"><div class="ei">🏗️</div><p>${projects.length?'Ingen treff.':'Ingen prosjekter ennå.'}</p></div>`; return; }
+  el.innerHTML = `<table><thead><tr><th>Prosjekt</th><th>Fase</th><th>Ansvarlig</th><th>Enheter</th><th>Lansering</th><th>Kanal-status</th><th></th></tr></thead><tbody>
+    ${f.map(p=>`<tr>
+      <td><strong>${p.name}</strong>${p.location?`<br><span style="font-size:12px;color:#aaa">${p.location}</span>`:''}</td>
+      <td><span class="phase-badge phase-${p.phase}">${phaseL[p.phase]||p.phase}</span></td>
+      <td>${p.owner||'—'}</td><td>${p.units||'—'}</td>
+      <td>${p.launch?formatDate(p.launch):'—'}</td>
+      <td style="max-width:200px;font-size:13px;color:#777">${p.channels||'—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openModal('edit','${p.id}')">Rediger</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function formatDate(d) { if(!d)return'—'; return new Date(d).toLocaleDateString('nb-NO',{day:'numeric',month:'short',year:'numeric'}); }
+
+function openModal(mode, id) {
+  editingId = null;
+  document.getElementById('modal-title').textContent = mode==='edit' ? 'Rediger prosjekt' : 'Nytt prosjekt';
+  ['f-name','f-location','f-owner','f-units','f-launch','f-channels'].forEach(f=>{ const e=document.getElementById(f); if(e)e.value=''; });
+  document.getElementById('f-phase').value = 'tidligfase';
+  if (mode==='edit' && id) {
+    const p = projects.find(x=>x.id===id); if(!p)return;
+    editingId = id;
+    ['name','location','owner','units','launch','channels'].forEach(k=>{ const e=document.getElementById('f-'+k); if(e)e.value=p[k]||''; });
+    document.getElementById('f-phase').value = p.phase||'tidligfase';
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalBg(e) { if(e.target===document.getElementById('modal-overlay'))closeModal(); }
+
+async function saveProject() {
+  const name = document.getElementById('f-name').value.trim(); if(!name){document.getElementById('f-name').focus();return;}
+  const data = { id: editingId||Date.now().toString(), name, location:document.getElementById('f-location').value.trim(), owner:document.getElementById('f-owner').value.trim(), phase:document.getElementById('f-phase').value, units:document.getElementById('f-units').value, launch:document.getElementById('f-launch').value, channels:document.getElementById('f-channels').value.trim(), updated:new Date().toISOString() };
+  if(editingId) projects=projects.map(p=>p.id===editingId?data:p); else projects.unshift(data);
+  await save(KEY_P, projects);
+  closeModal(); renderTable(); renderStats();
+  showToast(editingId?'Oppdatert ✓':'Prosjekt lagt til ✓');
+}
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+</script>
+</body>
+</html>
